@@ -12,7 +12,7 @@ dataset = BeamDataset()
 # PARAMETERS
 # ============================================================
 
-L_values = np.linspace(0.5, 1.5, 21)
+L_train = np.linspace(0.7, 1.3, 13)
 n_points = 100
 
 all_data = []

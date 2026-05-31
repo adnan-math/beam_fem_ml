@@ -12,7 +12,7 @@ class BeamDataset:
             E=30e9,
             nu=0.2,
             traction=1000.0,
-            nx=50, ny=20, nz=20,
+            nx=100, ny=20, nz=20,
             mesh_mode="relative"):   # relative or fixed
 
       # Geometry params
@@ -39,27 +39,13 @@ class BeamDataset:
     # Create mesh for given L
     # --------------------------------------------------------
     def create_mesh(self, L):
-
-        if self.mesh_mode == "fixed":
-            nx = self.nx
-        elif self.mesh_mode == "relative":
-            nx = int(self.nx * L / 1.0)
-        else:
-            raise ValueError("Unknown mesh_mode")
+        nx = int(self.nx * L / 1.0)
 
         domain = mesh.create_box( MPI.COMM_WORLD,
             [np.array([0.0, -self.W/2, -self.H/2]),
             np.array([L,  self.W/2,  self.H/2])],
             [nx, self.ny, self.nz],
             cell_type=mesh.CellType.hexahedron)
-        # ---- compute number of elements ----
-        tdim = domain.topology.dim
-        num_cells = domain.topology.index_map(tdim).size_local \
-                    + domain.topology.index_map(tdim).num_ghosts
-
-        if MPI.COMM_WORLD.rank == 0:
-            print(f"[Mesh info] nx={nx}, ny={self.ny}, nz={self.nz}, total elements={num_cells}")
-
         return domain
 
     # --------------------------------------------------------
@@ -79,19 +65,14 @@ class BeamDataset:
         left_facets = mesh.locate_entities_boundary(domain, fdim, left)
         left_dofs = fem.locate_dofs_topological(V, fdim, left_facets)
 
-        bc = fem.dirichletbc(
-            np.array((0.0, 0.0, 0.0), dtype=PETSc.ScalarType),
-            left_dofs,
-            V
-        )
+        bc = fem.dirichletbc(np.array((0.0, 0.0, 0.0), dtype=PETSc.ScalarType),left_dofs, V)
 
         # Strain / stress
         def epsilon(u):
             return ufl.sym(ufl.grad(u))
 
         def sigma(u):
-            return self.lmbda * ufl.tr(epsilon(u)) * ufl.Identity(3) + \
-                   2.0 * self.mu * epsilon(u)
+            return self.lmbda * ufl.tr(epsilon(u)) * ufl.Identity(3) + 2.0 * self.mu * epsilon(u)
 
         u = ufl.TrialFunction(V)
         v = ufl.TestFunction(V)

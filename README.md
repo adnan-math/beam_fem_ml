@@ -1,59 +1,93 @@
-# Parametric FEM + Neural Network Surrogate Model
+# Physics-Informed FEM Dataset and Neural Surrogate Model for Beam Deformation
 
 ## Overview
 
-This project simulates a 3D clamped beam using the Finite Element Method (FEM) and trains a neural network to approximate the vertical displacement along the beam centerline as a function of beam length and spatial position.
+This project presents a complete workflow combining high-fidelity Finite Element Method (FEM) simulations with machine learning to construct a fast surrogate model for predicting 3D beam deformation under mechanical loading.
 
-The goal is to learn the mapping:
-
-(L, x) → u_z(x, 0, 0)
-
-where:
-- L is the beam length
-- x is the position along the beam
-- u_z is the vertical displacement
+The pipeline includes:
+- FEM-based dataset generation using FEniCSx
+- Centerline extraction of displacement fields
+- Neural network surrogate modeling
+- Evaluation in interpolation and extrapolation regimes
 
 ---
 
-## Physics Model
+## Repository Structure
 
-- 3D linear elasticity
-- Beam dimensions:
-  - Length: L ∈ [0.5, 1.5] m
-  - Width: 0.2 m
-  - Height: 0.2 m
-- Material:
-  - Young’s modulus: 30 GPa
-  - Poisson ratio: 0.2
-- Boundary conditions:
-  - Left face (x = 0): fully clamped (u = 0)
-- Loading:
-  - Uniform traction on top surface: 1000 N/m² (downward)
+├── fem_dataset.py # FEM simulation and dataset generation class
+├── data_generator.py # Dataset generation pipeline
+├── training.py # Neural network training script
+├── beam_fem_dataset.npz # Generated dataset (input-output pairs)
+├── beam_mlp_model.pt # Trained surrogate model
+├── norm_stats.npz # Normalization parameters
+├── fem_validation.ipynb # FEM verification notebook
+├── analysis.ipynb # ML model analysis and results
+
+
 
 ---
 
-## Methodology
+## FEM Simulation (Physics Model)
 
-### 1. FEM Simulation
-- Implemented using FEniCSx (DOLFINx)
-- Solves linear elasticity equations
-- Extracts displacement along beam centerline (y = 0, z = 0)
+The FEM solver is implemented using FEniCSx and models a 3D elastic beam under traction loading.
 
-### 2. Dataset Generation
-Each sample contains:
-- Input: (L, x)
-- Output: u_z(x, 0, 0)
+### Key features:
+- Linear elasticity formulation
+- Hexahedral mesh with geometry-aware refinement
+- Clamped boundary condition at x = 0
+- Traction applied on the beam surface
+- Centerline displacement extraction
 
-Saved as: beam_fem_dataset.npz
-
-
-### 3. Neural Network
-- Fully connected MLP
-- Input: (L, x)
-- Output: displacement u_z
-- Loss: Mean Squared Error (MSE)
-- Optimizer: Adam
+### Governing model:
+- Stress-strain relation: linear elasticity
+- Solved using PETSc LU direct solver (MUMPS)
 
 ---
 
+## Dataset Generation
 
+Run `data_generator.py` to generate the dataset:
+
+
+python data_generator.py
+
+
+## Notebooks
+
+### FEM Validation
+📌 Verifies correctness of FEM simulation results  
+👉 https://colab.research.google.com/github/adnan-math/beam_fem_ml/blob/main/fem_validation.ipynb
+
+### Model Analysis
+📌 Evaluates ML surrogate performance and generalization  
+👉 https://colab.research.google.com/github/adnan-math/beam_fem_ml/blob/main/analysis.ipynb
+
+---
+
+## Results
+
+The surrogate model:
+
+- Achieves high accuracy in interpolation regime  
+- Preserves smooth physical deformation trends  
+- Shows expected degradation under extrapolation beyond training range  
+
+---
+
+## Key Contributions
+
+- End-to-end FEM-to-ML pipeline for structural mechanics  
+- Geometry-aware dataset generation strategy  
+- Compact centerline-based representation of 3D displacement fields  
+- Fast surrogate model for engineering design exploration  
+
+---
+
+## Requirements
+
+- Python 3.9+  
+- FEniCSx (dolfinx)  
+- PETSc / MPI  
+- PyTorch  
+- NumPy  
+- Pandas  

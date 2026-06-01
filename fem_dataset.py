@@ -87,7 +87,7 @@ class BeamDataset:
 
         ds = ufl.Measure("ds", domain=domain, subdomain_data=tags)
 
-        T = fem.Constant(domain, PETSc.ScalarType((0.0, 0.0, traction)))
+        T = fem.Constant(domain, PETSc.ScalarType((0.0, 0.0, -traction)))
 
         a = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
         Lform = ufl.dot(T, v) * ds(1)

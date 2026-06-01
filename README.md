@@ -14,15 +14,22 @@ The pipeline includes:
 
 ## Repository Structure
 
-├── fem_dataset.py # FEM simulation and dataset generation class
-├── data_generator.py # Dataset generation pipeline
-├── training.py # Neural network training script
-├── beam_fem_dataset.npz # Generated dataset (input-output pairs)
-├── beam_mlp_model.pt # Trained surrogate model
-├── norm_stats.npz # Normalization parameters
-├── fem_validation.ipynb # FEM verification notebook
-├── analysis.ipynb # ML model analysis and results
 
+├── fem_dataset.py # FEM simulation and dataset generation class
+
+├── data_generator.py # Dataset generation pipeline
+
+├── training.py # Neural network training script
+
+├── beam_fem_dataset.npz # Generated dataset (input-output pairs)
+
+├── beam_mlp_model.pt # Trained surrogate model
+
+├── norm_stats.npz # Normalization parameters
+
+├── fem_validation.ipynb # FEM verification notebook
+
+├── analysis.ipynb # ML model analysis and results
 
 
 ---

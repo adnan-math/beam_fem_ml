@@ -1,4 +1,4 @@
-# Physics-Informed FEM Dataset and Neural Surrogate Model for Beam Deformation
+# FEM Dataset and Neural Surrogate Model for Beam Deformation
 
 ## Overview
 

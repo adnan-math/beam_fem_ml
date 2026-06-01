@@ -21,7 +21,7 @@ all_data = []
 # FEM DATA GENERATION LOOP
 # ============================================================
 
-for L in L_values:
+for L in L_train:
     print(f"Running FEM for L = {L:.2f}")
 
     data_L = dataset.generate(L, n_points=n_points)

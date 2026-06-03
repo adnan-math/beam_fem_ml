@@ -130,47 +130,47 @@ class BeamDataset:
         # Constructing 3D beam deformation
 #############################################################################
 
-        def sample_centerline(self, L, uh, V, n_points=80, n_y=5, n_z=5):
-        
-            x_vals = np.linspace(0.0, L, n_points)
-        
-            # cross-section sampling grid
-            y_vals = np.linspace(-self.W/2, self.W/2, n_y)
-            z_vals = np.linspace(-self.H/2, self.H/2, n_z)
-        
-            data = []
-        
-            for x in x_vals:
-        
-                Xc = []  # deformed coordinates of cross-section points
-        
-                for y in y_vals:
-                    for z in z_vals:
-        
-                        # reference material point
-                        X = np.array([x, y, z])
-        
-                        # displacement at that material point
-                        u = uh.eval(X, np.array([0.0]))
-        
-                        # deformed position
-                        X_def = X + u
-        
-                        Xc.append(X_def)
-        
-                Xc = np.array(Xc)
-        
-                # --------------------------------------------------
-                # TRUE deformed centerline = centroid of cross-section
-                # --------------------------------------------------
-                centroid = np.mean(Xc, axis=0)
-        
-                x_def = centroid[0]
-                z_def = centroid[2]
-        
-                data.append([L, x_def, z_def])
-        
-            return np.array(data)
+    def sample_centerline(self, L, uh, V, n_points=80, n_y=5, n_z=5):
+    
+        x_vals = np.linspace(0.0, L, n_points)
+    
+        # cross-section sampling grid
+        y_vals = np.linspace(-self.W/2, self.W/2, n_y)
+        z_vals = np.linspace(-self.H/2, self.H/2, n_z)
+    
+        data = []
+    
+        for x in x_vals:
+    
+            Xc = []  # deformed coordinates of cross-section points
+    
+            for y in y_vals:
+                for z in z_vals:
+    
+                    # reference material point
+                    X = np.array([x, y, z])
+    
+                    # displacement at that material point
+                    u = uh.eval(X, np.array([0.0]))
+    
+                    # deformed position
+                    X_def = X + u
+    
+                    Xc.append(X_def)
+    
+            Xc = np.array(Xc)
+    
+            # --------------------------------------------------
+            # TRUE deformed centerline = centroid of cross-section
+            # --------------------------------------------------
+            centroid = np.mean(Xc, axis=0)
+    
+            x_def = centroid[0]
+            z_def = centroid[2]
+    
+            data.append([L, x_def, z_def])
+    
+        return np.array(data)
 
     # --------------------------------------------------------
     # Full pipeline for one beam

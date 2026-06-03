@@ -102,17 +102,28 @@ class BeamDataset:
     # --------------------------------------------------------
     # Extract centerline dataset
     # --------------------------------------------------------
-    def sample_centerline(self, L, uh, n_points=100):
-
+    def sample_centerline(self, L, uh, V, n_points=100):
+    
         x_vals = np.linspace(0, L, n_points)
-
+    
         data = []
-
+    
         for x in x_vals:
+    
+            # point on undeformed centerline (neutral axis)
             point = np.array([x, 0.0, 0.0])
-            uz = uh.eval(point, np.array([0.0]))[2]
-            data.append([L, x, uz])
-
+    
+            # evaluate displacement
+            u = uh.eval(point, np.array([0.0]))
+    
+            ux, uy, uz = u[0], u[1], u[2]
+    
+            # deformed coordinates
+            x_def = x + ux
+            z_def = 0.0 + uz
+    
+            data.append([L, x_def, z_def])
+    
         return np.array(data)
 
     # --------------------------------------------------------

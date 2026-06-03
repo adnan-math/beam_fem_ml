@@ -37,7 +37,7 @@ print("Final dataset shape:", all_data.shape)
 # ============================================================
 
 df = pd.DataFrame(all_data, columns=["L", "x", "uz"])
-df.to_csv("beam_fem_dataset.csv", index=False)
+df.to_csv("beam_fem_dataset3d.csv", index=False)
 
 print("Saved: beam_fem_dataset.csv")
 

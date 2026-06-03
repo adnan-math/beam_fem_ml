@@ -135,6 +135,6 @@ class BeamDataset:
             traction = self.traction
 
         domain, V, uh = self.solve(L, traction)
-        data = self.sample_centerline(L, uh, n_points)
+        data = self.sample_centerline(L, uh, V, n_points)
 
         return data

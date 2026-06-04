@@ -4,6 +4,8 @@ from dolfinx import mesh, fem
 import ufl
 from petsc4py import PETSc
 from dolfinx.fem.petsc import LinearProblem
+from dolfinx.geometry import bb_tree, compute_collisions_points, compute_colliding_cells
+
 
 class BeamDataset:
     def __init__(self,
@@ -102,39 +104,14 @@ class BeamDataset:
     # --------------------------------------------------------
     # Extract centerline dataset
     # --------------------------------------------------------
-    def sample_center(self, L, uh, V, n_points=100):
-    
-        x_vals = np.linspace(0, L, n_points)
-    
-        data = []
-    
-        for x in x_vals:
-    
-            # point on undeformed centerline (neutral axis)
-            point = np.array([x, 0.0, 0.0])
-    
-            # evaluate displacement
-            u = uh.eval(point, np.array([0.0]))
-    
-            ux, uy, uz = u[0], u[1], u[2]
-    
-            # deformed coordinates
-            x_def = x + ux
-            z_def = 0.0 + uz
-    
-            data.append([L, x_def, z_def])
-    
-        return np.array(data)
 
-##############################################################################
-        # Constructing 3D beam deformation
-#############################################################################
-
-    def sample_centerline(self, L, uh, V, n_points=80, n_y=5, n_z=5):
+    def sample_centerline(self, L, uh, domain, n_points=80, n_y=5, n_z=5):
+    
+        tdim = domain.topology.dim
+        tree = bb_tree(domain, tdim)
     
         x_vals = np.linspace(0.0, L, n_points)
     
-        # cross-section sampling grid
         y_vals = np.linspace(-self.W/2, self.W/2, n_y)
         z_vals = np.linspace(-self.H/2, self.H/2, n_z)
     
@@ -142,36 +119,36 @@ class BeamDataset:
     
         for x in x_vals:
     
-            Xc = []  # deformed coordinates of cross-section points
+            pts = []
     
             for y in y_vals:
                 for z in z_vals:
     
-                    # reference material point
                     X = np.array([x, y, z])
     
-                    # displacement at that material point
-                    u = uh.eval(X, np.array([0.0]))
+                    cells = compute_collisions_points(tree, X)
+                    colliding = compute_colliding_cells(domain, cells, X)
     
-                    # deformed position
-                    X_def = X + u
+                    if len(colliding.links(0)) == 0:
+                        continue
     
-                    Xc.append(X_def)
+                    cell = colliding.links(0)[0]
     
-            Xc = np.array(Xc)
+                    u = uh.eval(X, [cell])
     
-            # --------------------------------------------------
-            # TRUE deformed centerline = centroid of cross-section
-            # --------------------------------------------------
-            centroid = np.mean(Xc, axis=0)
+                    pts.append(X + u)
     
-            x_def = centroid[0]
-            z_def = centroid[2]
+            if len(pts) == 0:
+                data.append([L, np.nan, np.nan])
+                continue
     
-            data.append([L, x_def, z_def])
+            pts = np.array(pts)
+    
+            centroid = np.mean(pts, axis=0)
+    
+            data.append([L, centroid[0], centroid[2]])
     
         return np.array(data)
-
     # --------------------------------------------------------
     # Full pipeline for one beam
     # --------------------------------------------------------
@@ -181,6 +158,6 @@ class BeamDataset:
             traction = self.traction
 
         domain, V, uh = self.solve(L, traction)
-        data = self.sample_centerline(L, uh, V, n_points, n_y=5, n_z=5)
+        data = self.sample_centerline(L, uh, V, n_points)
 
         return data

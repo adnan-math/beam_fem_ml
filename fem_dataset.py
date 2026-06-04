@@ -104,60 +104,40 @@ class BeamDataset:
     # --------------------------------------------------------
     # Extract centerline dataset
     # --------------------------------------------------------
-
-    def sample_centerline(self, L, uh, domain, n_points=80, n_y=5, n_z=5):
-    
-        tdim = domain.topology.dim
-        tree = bb_tree(domain, tdim)
+    def sample_centerline(self, L, uh, n_points=100):
+        """
+        True Lagrangian centerline:
+        material points along beam axis mapped to deformed configuration
+        """
     
         x_vals = np.linspace(0.0, L, n_points)
-    
-        y_vals = np.linspace(-self.W/2, self.W/2, n_y)
-        z_vals = np.linspace(-self.H/2, self.H/2, n_z)
     
         data = []
     
         for x in x_vals:
     
-            pts = []
+            X = np.array([x, 0.0, 0.0])  # mid-fiber
     
-            for y in y_vals:
-                for z in z_vals:
+            # correct evaluation in dolfinx
+            u = uh.eval(X, np.array([0], dtype=np.int32))
     
-                    X = np.array([x, y, z])
+            ux, uy, uz = u
     
-                    cells = compute_collisions_points(tree, X)
-                    colliding = compute_colliding_cells(domain, cells, X)
+            X_def = X + np.array([ux, uy, uz])
     
-                    if len(colliding.links(0)) == 0:
-                        continue
-    
-                    cell = colliding.links(0)[0]
-    
-                    u = uh.eval(X, [cell])
-    
-                    pts.append(X + u)
-    
-            if len(pts) == 0:
-                data.append([L, np.nan, np.nan])
-                continue
-    
-            pts = np.array(pts)
-    
-            centroid = np.mean(pts, axis=0)
-    
-            data.append([L, centroid[0], centroid[2]])
+            data.append([L, X_def[0], X_def[2]])
     
         return np.array(data)
     # --------------------------------------------------------
     # Full pipeline for one beam
     # --------------------------------------------------------
     def generate(self, L, traction=None, n_points=100):
-
+    
         if traction is None:
             traction = self.traction
-
+    
         domain, V, uh = self.solve(L, traction)
-        data = self.sample_centerline(L, uh, V, n_points)
-
+    
+        data = self.sample_centerline(L, uh, n_points)
+    
         return data
